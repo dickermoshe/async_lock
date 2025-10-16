@@ -101,6 +101,8 @@ class LockedAsyncState {
   final List<Function> _onCancelled = [];
   bool _isCancelled = false;
 
+  bool get isCancelled => _isCancelled;
+
   /// Checks if this task has been cancelled and throws [CancelledException] if so.
   ///
   /// You should call this method after any async operations that you want to cancel if the task is cancelled.

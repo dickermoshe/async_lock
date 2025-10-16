@@ -10,7 +10,7 @@ dependencies:
   equatable: ^2.0.0
   flutter:
     sdk: flutter
-  locked_async: ^0.1.1
+  locked_async: ^0.1.2
 
 dev_dependencies:
   flutter_test:

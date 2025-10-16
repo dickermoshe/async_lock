@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:locked_async/locked_async.dart';
 
+@internal
 abstract class BaseStateInterface<T> {
   void clearPreviousState();
 }
 
+@internal
 abstract class Base<
   ReturnType,
   ArgsType,
@@ -25,22 +27,26 @@ abstract class Base<
     super.dispose();
   }
 
-  void _safeSetState(StateType state) {
-    if (_isDisposed) {
+  void guardedSetState(LockedAsyncState lockState, StateType newState) {
+    if (_isDisposed || lockState.isCancelled) {
       return;
     }
     // Remove the previous state from the previous state
-    state.clearPreviousState();
-    value = state;
+    // We only want to keep a single previous state, nothing deeper.
+    value.clearPreviousState();
+    value = newState;
   }
 
-  StateType buildLoading(StateType previousState);
-  StateType buildCompleted(StateType previousState, ReturnType value);
-  StateType buildFailed(
-    StateType previousState,
-    Object error,
-    StackTrace stackTrace,
-  );
+  StateType buildLoading({required StateType previousState});
+  StateType buildCompleted({
+    required StateType previousState,
+    required ReturnType value,
+  });
+  StateType buildFailed({
+    required StateType previousState,
+    required Object error,
+    required StackTrace stackTrace,
+  });
   Future<ReturnType> fn(LockedAsyncState state, ArgsType args);
 
   void internalRun(ArgsType args) {
@@ -49,16 +55,18 @@ abstract class Base<
     }
 
     _lockedAsync.run((state) async {
-      state.guard();
-      _safeSetState(buildLoading(value));
+      guardedSetState(state, buildLoading(previousState: value));
       try {
-        final result = await state.wait(() => fn(state, args));
-        _safeSetState(buildCompleted(value, result));
+        final result = await fn(state, args);
+        guardedSetState(
+          state,
+          buildCompleted(previousState: value, value: result),
+        );
       } catch (e, stackTrace) {
-        if (e is CancelledException) {
-          return;
-        }
-        _safeSetState(buildFailed(value, e, stackTrace));
+        guardedSetState(
+          state,
+          buildFailed(previousState: value, error: e, stackTrace: stackTrace),
+        );
       }
     });
   }

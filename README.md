@@ -22,6 +22,8 @@ await lock.run((state) async {
 
 That's it. The lock ensures only one task runs at a time, automatically canceling old ones when new ones start.
 
+
+
 ## Why Do We Need This?
 
 Let's say you've got a search input where every keystroke triggers an API call. Simple, right?
