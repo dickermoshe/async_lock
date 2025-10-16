@@ -56,11 +56,10 @@ final results = ValueNotifier<List<String>>([]);
 Future<void> getSearchResults(String query) async {
   await lock.run((state) async {
     // Wrap async operations with state.wait() to check for cancellation
-    final response = await state.wait(() => 
-      http.get(Uri.parse('https://api.example.com/search?q=$query'))
-    );
-    
-    state.guard();  // Final check before updating
+    final response = await http.get(Uri.parse('https://api.example.com/search?q=$query'));
+
+    state.guard(); // Crash the current task if it is cancelled
+
     results.value = jsonDecode(response.body);
   });
 }
@@ -97,6 +96,8 @@ await lock.run((state) async {
   processResults();  // Safe outside async ops
 });
 ```
+
+This will call `state.guard()` before allowing the task to continue.
 
 ## The Real Problem: HTTP Doesn't Stop
 
