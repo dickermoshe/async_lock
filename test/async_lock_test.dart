@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'package:async_lock/async_lock.dart';
+import 'package:locked_async/locked_async.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('AsyncLock', () {
-    late AsyncLock lock;
+  group('LockedAsync', () {
+    late LockedAsync lock;
 
     setUp(() {
-      lock = AsyncLock();
+      lock = LockedAsync();
     });
 
     group('basic functionality', () {
@@ -445,8 +445,8 @@ void main() {
       });
 
       test('multiple lock instances are independent', () async {
-        final lock1 = AsyncLock();
-        final lock2 = AsyncLock();
+        final lock1 = LockedAsync();
+        final lock2 = LockedAsync();
 
         var lock1Task1Completed = false;
         var lock1Task2Completed = false;
@@ -477,7 +477,7 @@ void main() {
       });
 
       test('state from cancelled task cannot be reused', () async {
-        AsyncLockState? savedState;
+        LockedAsyncState? savedState;
 
         lock.run((state) async {
           savedState = state;

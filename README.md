@@ -3,15 +3,15 @@
 Install the package with:
 
 ```bash
-dart pub add async_lock
+dart pub add locked_async
 ```
 
 Import and create a lock:
 
 ```dart
-import 'package:async_lock/async_lock.dart';
+import 'package:locked_async/locked_async.dart';
 
-final lock = AsyncLock();
+final lock = LockedAsync();
 
 await lock.run((state) async {
   final data = await fetchData();
@@ -42,15 +42,15 @@ getSearchResults('hel');   // Request #2, 200ms response time (fast server respo
 
 Here's the problem: Request #2 finishes first! Your UI shows "hel" results, then immediately flips back to "he" results when the slower request completes. Users see wrong results flickering. It's wasteful and confusing.
 
-## The AsyncLock Solution
+## The LockedAsync Solution
 
-`AsyncLock` ensures only one task runs at a time. When a new `lock.run()` starts, it cancels the previous one. Inside your callback, you get a `state` object to cooperate with cancellation:
+`LockedAsync` ensures only one task runs at a time. When a new `lock.run()` starts, it cancels the previous one. Inside your callback, you get a `state` object to cooperate with cancellation:
 
 ```dart
-import 'package:async_lock/async_lock.dart';
+import 'package:locked_async/locked_async.dart';
 import 'package:http/http.dart' as http;
 
-final lock = AsyncLock();
+final lock = LockedAsync();
 final results = ValueNotifier<List<String>>([]);
 
 Future<void> getSearchResults(String query) async {
@@ -110,7 +110,7 @@ Dio actually supports true request cancellation:
 import 'package:dio/dio.dart';
 
 final dio = Dio();
-final lock = AsyncLock();
+final lock = LockedAsync();
 
 Future<void> getSearchResults(String query) async {
   await lock.run((state) async {
@@ -155,7 +155,7 @@ Combine with the lock and you get instant response when users pause, without the
 ```dart
 Timer? _debounceTimer;
 final dio = Dio();
-final lock = AsyncLock();
+final lock = LockedAsync();
 
 Future<void> onSearchChanged(String query) {
   _debounceTimer?.cancel();

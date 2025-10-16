@@ -3,7 +3,7 @@
 ///
 /// Example:
 /// ```dart
-/// final task = AsyncLock();
+/// final task = LockedAsync();
 ///
 /// void downloadFile(String url, String filename) {
 ///   task.run((state) async {
@@ -36,33 +36,33 @@ import 'package:synchronized/synchronized.dart';
 ///
 /// When [run] is called, any previously running task is cancelled immediately,
 /// and the new task begins execution.
-class AsyncLock {
+class LockedAsync {
   final Lock _lock = Lock();
-  AsyncLockState? _previousTaskState;
+  LockedAsyncState? _previousTaskState;
 
-  /// Creates a new [AsyncLock] instance.
-  AsyncLock();
+  /// Creates a new [LockedAsync] instance.
+  LockedAsync();
 
   /// Runs the given function [fn], cancelling any previously running task.
   ///
-  /// The function receives an [AsyncLockState] object which can be used to:
-  /// - Check if the task has been cancelled via [AsyncLockState.guard]
-  /// - Wait for async operations while checking for cancellation via [AsyncLockState.wait]
-  /// - Register cleanup callbacks via [AsyncLockState.onCancel]
+  /// The function receives an [LockedAsyncState] object which can be used to:
+  /// - Check if the task has been cancelled via [LockedAsyncState.guard]
+  /// - Wait for async operations while checking for cancellation via [LockedAsyncState.wait]
+  /// - Register cleanup callbacks via [LockedAsyncState.onCancel]
   ///
   /// Example:
   /// ```dart
-  /// final lock = AsyncLock();
+  /// final lock = LockedAsync();
   /// lock.run((state) async {
   ///   state.guard(); // Check if cancelled
   ///   final data = await state.wait(() => fetchData());
   ///   processData(data);
   /// });
   /// ```
-  Future<T> run<T>(Future<T> Function(AsyncLockState state) fn) {
+  Future<T> run<T>(Future<T> Function(LockedAsyncState state) fn) {
     // Cancel the previous task and reset
     _previousTaskState?._cancel();
-    final newState = AsyncLockState();
+    final newState = LockedAsyncState();
 
     final future = _lock.synchronized(() {
       newState.guard();
@@ -80,7 +80,7 @@ class AsyncLock {
 
 /// An exception thrown when a task is cancelled.
 ///
-/// Thrown by [AsyncLockState.guard] and [AsyncLockState.wait] when a new
+/// Thrown by [LockedAsyncState.guard] and [LockedAsyncState.wait] when a new
 /// task starts and cancels the current one.
 final class CancelledException implements Exception {
   /// Creates a new [CancelledException].
@@ -90,14 +90,14 @@ final class CancelledException implements Exception {
   String toString() => 'CancelledException';
 }
 
-/// The state of a task running in an [AsyncLock].
+/// The state of a task running in an [LockedAsync].
 ///
 /// Provides methods to:
 /// - Check if the task has been cancelled ([guard])
 /// - Wait for async operations with cancellation checks ([wait])
 /// - Register cleanup callbacks ([onCancel])
-class AsyncLockState {
-  AsyncLockState();
+class LockedAsyncState {
+  LockedAsyncState();
   final List<Function> _onCancelled = [];
   bool _isCancelled = false;
 

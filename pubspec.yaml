@@ -1,4 +1,4 @@
-name: async_lock
+name: locked_async
 description: A package for locking asynchronous operations.
 version: 0.1.0
 repository: https://github.com/dickermoshe/async_lock
