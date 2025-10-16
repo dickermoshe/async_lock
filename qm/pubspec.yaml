@@ -1,6 +1,8 @@
 name: qm
 description: Locked Async Notifiers for Queries and Mutations
 version: 0.1.0
+repository: https://github.com/dickermoshe/async_lock
+homepage: https://github.com/dickermoshe/async_lock/tree/main/qm
 
 environment:
   sdk: ^3.9.0
