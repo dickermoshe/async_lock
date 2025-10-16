@@ -137,14 +137,20 @@ Now when users type "hel", the "he" request gets aborted immediately. No waiting
 Even with cancellation, rapid typing can spam your API. Debouncing waits for users to pause typing:
 
 ```dart
-import 'dart:async';
+import 'package:dio/dio.dart';
 
-Timer? _debounceTimer;
+final dio = Dio();
+final lock = LockedAsync();
 
-Future<void> onSearchChanged(String query) {
-  _debounceTimer?.cancel();
-  _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-    getSearchResults(query);  // Only fires after user pauses
+Future<void> getSearchResults(String query) async {
+  await lock.run((state) async {
+    // Wait 300ms for the user to stop typing
+    await state.wait(() => Future.delayed(const Duration(milliseconds: 300)));
+    
+    // This request won't even start if the task is cancelled
+    final response = await state.wait(() => dio.get('https://api.example.com/search?q=$query'));
+    
+    results.value = jsonDecode(response.data);
   });
 }
 ```
@@ -154,30 +160,29 @@ Combine with the lock and you get instant response when users pause, without the
 ### The Ultimate: Both Together
 
 ```dart
-Timer? _debounceTimer;
+import 'package:dio/dio.dart';
+
 final dio = Dio();
 final lock = LockedAsync();
 
-Future<void> onSearchChanged(String query) {
-  _debounceTimer?.cancel();
-  _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
-    await lock.run((state) async {
-      final cancelToken = CancelToken();
-      state.onCancel(() => cancelToken.cancel());
-      
-      final response = await state.wait(() => 
-        dio.get('https://api.example.com/search?q=$query', 
-                cancelToken: cancelToken)
-      );
-      
-      results.value = jsonDecode(response.data);
-    });
+Future<void> getSearchResults(String query) async {
+  await lock.run((state) async {
+    // Wait 300ms for the user to stop typing
+    await state.wait(() => Future.delayed(const Duration(milliseconds: 300)));
+    
+    // Kill the request if the task is cancelled
+    final cancelToken = CancelToken();
+    state.onCancel(() => cancelToken.cancel());
+    
+    final response = await state.wait(() => dio.get('https://api.example.com/search?q=$query', cancelToken: cancelToken));
+    
+    results.value = jsonDecode(response.data);
   });
 }
 ```
 
-Wait 300ms for the user to stop typing, then make a single cancellable request. Perfect balance of responsiveness and efficiency.
+Wait 300ms for the user to stop typing, then make a single cancellable request. Any subsequent requests will cancel the previous one.
 
 ## Real Talk
 
-I used to think async in Dart was straightforward. Then I built search features that made users rage-quit. This pattern (inspired by Riverpod's `ref.onDispose()`) solved it for me.
+I used to think async was straightforward. Then I built search features that made users rage-quit. This pattern (inspired by Riverpod's `ref.onDispose()`) solved it for me.
