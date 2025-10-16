@@ -1,0 +1,13 @@
+name: async_lock
+description: A package for locking asynchronous operations.
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  synchronized: ^3.0.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
