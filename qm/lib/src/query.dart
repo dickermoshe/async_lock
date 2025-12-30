@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:locked_async/locked_async.dart';
+import 'package:locked_async/locked_async.dart'
+    as locked_async
+    show LockedAsyncState;
 import 'package:qm/src/base.dart';
 import 'package:qm/src/query_state.dart';
 
@@ -40,9 +42,11 @@ abstract class Query<Result> implements ValueNotifier<QueryState<Result>> {
   /// Creates a query that executes the given async function.
   ///
   /// The function runs immediately and whenever [restart] is called.
-  /// The [LockedAsyncState] parameter can be used to check if the operation
+  /// The [locked_async.LockedAsyncState] parameter can be used to check if the operation
   /// was cancelled.
-  factory Query(Future<Result> Function(LockedAsyncState state) fn) {
+  factory Query(
+    Future<Result> Function(locked_async.LockedAsyncState state) fn,
+  ) {
     return QueryImpl<Result>(fn);
   }
 
@@ -53,13 +57,13 @@ abstract class Query<Result> implements ValueNotifier<QueryState<Result>> {
 @internal
 class QueryImpl<Result> extends Base<Result, void, QueryState<Result>>
     implements Query<Result> {
-  final Future<Result> Function(LockedAsyncState state) _fn;
+  final Future<Result> Function(locked_async.LockedAsyncState state) _fn;
   QueryImpl(this._fn) : super(LoadingQueryState<Result>()) {
-    internalRun(null);
+    internalRun(null).ignore();
   }
 
   @override
-  Future<Result> fn(LockedAsyncState state, void args) {
+  Future<Result> fn(locked_async.LockedAsyncState state, void args) {
     return _fn(state);
   }
 
@@ -87,6 +91,6 @@ class QueryImpl<Result> extends Base<Result, void, QueryState<Result>>
 
   @override
   void restart() {
-    internalRun(null);
+    internalRun(null).ignore();
   }
 }

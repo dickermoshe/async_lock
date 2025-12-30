@@ -22,17 +22,21 @@ sealed class MutationState<T> implements BaseStateInterface<T> {
   bool get isLoading => (this is RunningMutationState);
 
   /// True if the mutation completed successfully.
+  @override
   bool get hasValue => (this is CompletedMutationState);
 
   /// True if the mutation failed.
+  @override
   bool get hasFailed => (this is FailedMutationState);
 
   /// The result value if the mutation completed successfully, null otherwise.
+  @override
   T? get value => (this is CompletedMutationState)
       ? (this as CompletedMutationState<T>).value
       : null;
 
   /// The error if the mutation failed, null otherwise.
+  @override
   Object? get error {
     if (this is FailedMutationState) {
       return (this as FailedMutationState<T>).error;
@@ -41,6 +45,7 @@ sealed class MutationState<T> implements BaseStateInterface<T> {
   }
 
   /// The stack trace if the mutation failed, null otherwise.
+  @override
   StackTrace? get stackTrace {
     if (this is FailedMutationState) {
       return (this as FailedMutationState<T>).stackTrace;

@@ -19,17 +19,21 @@ sealed class QueryState<T> implements BaseStateInterface<T> {
   bool get isLoading => (this is LoadingQueryState);
 
   /// True if the query completed successfully.
+  @override
   bool get hasValue => (this is CompletedQueryState);
 
   /// True if the query failed.
+  @override
   bool get hasFailed => (this is FailedQueryState);
 
   /// The result value if the query completed successfully, null otherwise.
+  @override
   T? get value => (this is CompletedQueryState)
       ? (this as CompletedQueryState<T>).value
       : null;
 
   /// The error if the query failed, null otherwise.
+  @override
   Object? get error {
     if (this is FailedQueryState) {
       return (this as FailedQueryState<T>).error;
@@ -38,6 +42,7 @@ sealed class QueryState<T> implements BaseStateInterface<T> {
   }
 
   /// The stack trace if the query failed, null otherwise.
+  @override
   StackTrace? get stackTrace {
     if (this is FailedQueryState) {
       return (this as FailedQueryState<T>).stackTrace;
